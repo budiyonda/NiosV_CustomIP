@@ -158,53 +158,11 @@ niosv-app -a=software/app -b=software/bsp -s=software/app/[nama file].c
 juart-terminal
 ```
 
-#### Option B: Using CMake Build System
-
-```bash
-cd software/app
-
-# Create build directory if not exists
-if (-not (Test-Path build)) { mkdir build }
-
-# Configure and build
-cd build
-cmake ..
-cmake --build . --config Release
-
-# Or use clean rebuild:
-cmake --build . --clean-first
-```
-
-**Expected Output:** `build/app.elf`
-
 ## Programming Instructions
 
 ### 1. Program FPGA
 
-**Using Quartus Programmer:**
-```bash
-# Open Programmer
-quartus_pgm
-
-# Or command line:
-quartus_pgm -c "USB-Blaster" -m JTAG -o "p;output_files/Hello.sof@1"
-```
-
-**Verify:**
-- Programmer shows "100% (Successful)"
-- DE10-Nano LEDs indicate FPGA configured
-
 ### 2. Upload Firmware
-
-```bash
-cd software/app/build
-
-# Upload and run application
-niosv-download -g app.elf
-
-# Application starts automatically
-# JTAG UART output visible in console
-```
 
 **Expected Console Output:**
 ```
@@ -243,69 +201,6 @@ Connect to JTAG UART terminal to see debug messages:
 | `pio_0` | PIO | 0x30040 | 2-bit input (buttons) |
 | `seven_seg_controller_0` | Custom IP | 0x30058 | 7-segment display controller |
 
-### Data Flow
-
-```
-CPU (Nios V)
-    ↓ (Avalon-MM write, 16-bit)
-Seven-Seg Controller IP
-    ↓ (Serial shift, 16 bits)
-74HC595 (IC1 - Digits) → 74HC595 (IC2 - Segments)
-    ↓
-4-Digit 7-Segment Display (Multiplexed)
-```
-
-## Troubleshooting
-
-### Display Issues
-
-**Symptom:** Display shows wrong segments
-- **Cause:** Common anode/cathode mismatch
-- **Fix:** Verify shield uses common anode; check segment patterns in `seven_seg_controller.v`
-
-**Symptom:** Digits in wrong order (ones on left instead of right)
-- **Solution:** Already fixed via reversed `digit_select[]` array
-
-**Symptom:** Display completely off
-- **Check:**
-  1. Shield power (5V) connected properly
-  2. Pin assignments in `Hello.qsf` match hardware
-  3. FPGA programmed with latest `.sof`
-  4. Firmware uploaded successfully
-
-### JTAG Communication Errors
-
-**Error:** `Internal error. Error code: 0x23`
-```
-Unexpected error during IR scan. 
-Could not unlock device.
-```
-
-**Solutions:**
-1. **Power cycle** DE10-Nano (unplug power 10 seconds)
-2. **Replug USB Blaster** cable
-3. **Reduce JTAG clock** in Quartus Programmer: Hardware Setup → 6 MHz → 1.5 MHz
-4. **Check power supply**: Use 5V/2A adapter, not USB power only
-5. **Kill stuck process**:
-   ```powershell
-   taskkill /F /IM niosv-download.exe
-   ```
-
-### Build Errors
-
-**CMake configuration fails:**
-```bash
-# Ensure BSP is built first
-cd software/bsp
-cmake --build .
-cd ../app
-cmake --build build
-```
-
-**Quartus compilation errors:**
-- Verify all source files present in project
-- Regenerate Platform Designer system if IP changed
-- Check Verilog syntax in custom IP
 
 ## Technical Details
 
@@ -343,22 +238,6 @@ Bit mapping: [DP][G][F][E][D][C][B][A]
 0x00030050 - 0x00030057 : JTAG UART
 0x00030058 - 0x0003005B : Seven-Segment Controller
 ```
-
-## Known Limitations
-
-1. **Counter range:** 0-9999 (4 decimal digits max)
-2. **Button debounce:** Software-based, ~50,000 loop iterations
-3. **JTAG stability:** May disconnect during rapid counting (hardware issue)
-4. **Display patterns:** Only digits 0-9 supported (no hex A-F display)
-
-## Future Enhancements
-
-- [ ] Add hexadecimal display mode (0x0000-0xFFFF)
-- [ ] Implement hardware button debouncing
-- [ ] Add auto-increment mode (free-running counter)
-- [ ] Support decimal point control
-- [ ] Add brightness control via PWM
-- [ ] Implement BCD input mode
 
 ## License
 
@@ -456,3 +335,28 @@ juart-terminal
 
 - **Optional automation**
   - Add a `test_mode` to `software/app/counter.c` to run diagnostic patterns at startup and print results to UART.
+
+### Minimal Reproduction Package
+
+If you intend to share a minimal package (so others can reproduce quickly), include these files and folders:
+
+- `CustomIP/` (folder)
+  - Must contain `seven_seg_controller.v` and `seven_seg_controller_hw.tcl`.
+- `Hello.qsf`
+  - Project pin assignments and important settings — place in the Quartus project root.
+- `README.md`
+  - This file with the Reproducibility Guide and notes.
+
+Repository link (download): https://github.com/budiyonda/NiosV_CustomIP
+
+Minimal import steps for recipients:
+1. Copy the `CustomIP` folder into your Quartus project directory.
+2. Open Quartus and load `Hello.qpf` (or create a new project and add `Hello.qsf`).
+3. In Quartus: Tools → Platform Designer → Import Component → point to `CustomIP/seven_seg_controller_hw.tcl` to register the IP.
+4. Connect the IP in Platform Designer, assign an address (default 0x30058 used in this README), regenerate the system and export `.sopcinfo`.
+5. Follow BSP and firmware build steps above.
+
+Notes for sharers:
+- Keep `seven_seg_controller_hw.tcl` alongside `seven_seg_controller.v` so Platform Designer can import correctly.
+- If you want a fully self-contained package, include `Hello.qpf`, `Hello.qsf`, `CustomIP/`, and this `README.md`.
+
