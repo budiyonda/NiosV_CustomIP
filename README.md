@@ -121,18 +121,6 @@ NiosV_Hello/
     - Project name: `app`
   3. Import source files (if needed) and build the project (right-click project → Build Project).
 
-  Option B — Command-line CMake (recommended for reproducibility / CI):
-
-  ```powershell
-  cd software/app
-  if (-not (Test-Path build)) { mkdir build }
-  cd build
-  cmake ..
-  cmake --build . --config Release
-  ```
-
-  Verify: `app.elf` is produced in the build directory.
-
 ## Step 4 — Program FPGA and upload firmware
 
   Program the FPGA using Quartus Programmer, then upload firmware over JTAG.
