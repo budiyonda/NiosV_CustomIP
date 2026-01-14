@@ -211,13 +211,6 @@ Bit mapping: [DP][G][F][E][D][C][B][A]
 | 8 | 0x80 | 10000000 | A,B,C,D,E,F,G |
 | 9 | 0x90 | 10010000 | A,B,C,D,F,G |
 
-### Timing Parameters
-
-- **System Clock:** 50 MHz
-- **Shift Clock:** ~12.2 kHz (4096 FPGA cycles per bit)
-- **Digit Refresh Rate:** ~47 Hz (262,143 FPGA cycles per digit)
-- **Full Display Refresh:** ~12 Hz (4 digits × 21.5 ms)
-
 ### Memory Map
 
 ```
