@@ -113,42 +113,47 @@ NiosV_Hello/
 - Segment polarity (common-anode vs common-cathode)
   - The `seg_patterns` table is written for common-anode displays (segments active = 0). If your hardware is common-cathode, invert the pattern bits (bitwise NOT) so segments light correctly.
 
-## Implementation (Step-by-step)
+## Implementation
 
-This section gives a concise, professional sequence to build the FPGA image, generate the BSP, build the firmware with Ashling riscfree, program the board, and verify operation.
+Follow these steps to build the FPGA design, generate the BSP, build the firmware, program the board, and run basic verifications. Commands are shown for Windows/PowerShell where applicable; adjust paths for your environment.
 
 ### Step 1 — Hardware build (Quartus)
 
-1. Open Quartus and load the project (Hello.qpf) or run from the command line:
+1. Place the `CustomIP` folder inside your Quartus project directory so Platform Designer can find the IP files (`seven_seg_controller.v` and `seven_seg_controller_hw.tcl`).
+2. Open the Quartus project (GUI) or run from the Quartus command shell:
+
 ```powershell
-cd D:\Quartus251\projects\[your_project_folder]
+cd D:\Quartus251\projects\[your_project]
 quartus Hello.qpf
 quartus_sh --flow compile Hello
 ```
-2. Confirm the compilation result and locate the output SOF: `output_files/Hello.sof`.
 
-### Step 2 — Import Custom IP to Platform Designer
+3. If you modify the Platform Designer system, open Platform Designer (Tools → Platform Designer), import or add the custom component, connect it into the design, regenerate the system, and re-run compilation.
 
-1. Copy the `CustomIP/` folder into your project directory.
-2. In Quartus: Tools → Platform Designer → Open (or create) the Qsys system.
-3. Import the component:
-   - In Platform Designer select "Import Component" and point to `CustomIP/seven_seg_controller_hw.tcl`.
-   - Place the component in the system, connect clocks/resets and conduit exports (`sr_data`, `sr_clk`, `sr_latch`).
-4. Assign a base address to the component (default used in this README: `0x30058`) and regenerate the system. Export the `.sopcinfo` file.
+4. Confirm the compilation produces the device programming file:
 
-### Step 3 — Generate BSP (Board Support Package)
+```
+output_files/Hello.sof
+```
 
-Use the Nios V (niosv) command shell so tools are on PATH.
+### Step 2 — Generate BSP (Board Support Package)
+
+Use the Nios V command shell so the Nios toolchain environment is correct. Generate the BSP from the exported `.sopcinfo`:
+
 ```powershell
-cd D:\Quartus251\projects\[your_project_folder]
+cd D:\Quartus251\projects\[your_project]
 niosv-bsp -c -t=hal --sopcinfo=Hello.sopcinfo software/bsp/settings.bsp
 ```
-Verify `software/bsp` contains generated headers (e.g., `system.h`).
 
-### Step 4 — Build firmware (Ashling riscfree / CMake)
+After this completes, verify `software/bsp` contains generated headers (for example `system.h`) and BSP metadata.
 
-You can build the application either using CMake or using Ashling riscfree IDE. Example CMake flow:
-```powershell
+### Step 3 — Build firmware (application)
+
+You can build the firmware either with the CMake flow or with the `niosv-app` helper. Examples:
+
+- CMake (recommended when project already contains CMake files):
+
+```Nios V Command Shell
 cd software/app
 if (-not (Test-Path build)) { mkdir build }
 cd build
@@ -156,44 +161,69 @@ cmake ..
 cmake --build . --config Release
 ```
 
-If you prefer Ashling riscfree (IDE):
-1. Launch Ashling riscfree and create a new project (choose CMake-driven or empty + CMake later).
-2. Set project location to `...\NiosV_Hello\software\app` and import `counter.c`.
-3. Configure the toolchain to use the riscv toolchain provided by Ashling.
-4. Build the project from the IDE (Project → Build).
+- `niosv-app` (alternative legacy flow):
 
-### Step 5 — Program FPGA and upload firmware
+```Nios V Command Shell
+niosv-app -a=software/app -b=software/bsp -s=software/app/counter.c
+```
 
-1. Program the FPGA using Quartus Programmer:
-```powershell
+If you prefer to use Ashling riscfree IDE for development/debugging, import or create a new project in Ashling and point it to the `software/app` folder (select CMake-driven project or configure the toolchain appropriately). Then use the IDE's Build/Run configuration to compile the project.
+
+Verify the build produces `app.elf` (typically in `software/app/build`).
+
+### Step 4 — Program FPGA and upload firmware
+
+1. Program the FPGA with the generated `.sof`:
+
+```Nios V Command Shell
 quartus_pgm -c "USB-Blaster" -m JTAG -o "p;output_files/Hello.sof@1"
 ```
-2. Upload firmware via JTAG:
+
+2. Upload and run the firmware via JTAG:
+
 ```powershell
 cd software/app/build
 niosv-download -g app.elf
 ```
-3. Alternatively, use Ashling hardware debug to launch the application on the target (configure target connection and select Nios V core).
 
-### Step 6 — Hardware verification checklist
+3. (Optional) Use Ashling riscfree for hardware debug: create a debug configuration, select the target device and the Nios V core, then launch the hardware debug session from the IDE.
 
-- Connect to JTAG UART (or the IDE console) and verify the application prints:
-```text
-Counter app start (0-9999)
-7-seg display = 0, write to 0x30058 = 0x0000
+### Step 5 — Hardware verification checklist
+
+Perform these checks after programming and uploading firmware:
+
+- Confirm UART output (JTAG UART) shows the application start message:
+
 ```
-- Verify display behavior:
-  - Power on: `0000`
-  - Press KEY0 (increment) and KEY1 (decrement) to confirm counting and wrapping behavior.
-  - If digits are in the wrong positions: check `digit_select` mapping vs hardware wiring.
-  - If segments look inverted: confirm common-anode vs common-cathode and update `seg_patterns` accordingly.
+Counter app start (0-9999)
+```
 
-### Notes and tips
+- Expected visible behavior on the 7-seg display:
+  - Power-on: `0000` should be visible.
+  - Press KEY0: counter increments.
+  - Press KEY1: counter decrements.
 
-- Use the built-in diagnostic mode in `counter.c` (runs at startup) to quickly validate wiring and byte-order.
-- If you modify `seven_seg_controller.v`, re-run Platform Designer generation and rebuild Quartus project before regenerating BSP.
-- For low-level debugging, probe `sr_data`, `sr_clk`, `sr_latch` with a logic analyzer or scope.
+- If digits are in the wrong positions, verify `digit_select` mapping (0x08,0x04,0x02,0x01) vs your shield wiring.
+- If segment shapes are incorrect, check that your hardware matches the IP's expected polarity (common-anode). If not, invert `seg_patterns`.
+- Use the diagnostic mode included in `counter.c` to run visible tests on startup (pattern `1234`, digit cycling, and debug-latch blink).
 
+
+### Counter Operation
+
+1. **Power On:** Display shows `0000`
+2. **Increment:** Press KEY0 (AH17) → count increases: `0001`, `0002`, ..., `9999`
+3. **Decrement:** Press KEY1 (AH16) → count decreases
+4. **Wrap:** At `9999`, next increment → `0000`
+5. **Wrap (down):** At `0000`, decrement → `9999`
+
+### UART Debug Output
+
+Connect to JTAG UART terminal to see debug messages:
+```
+7-seg display = 5, write to 0x30058 = 0x0005
+7-seg display = 6, write to 0x30058 = 0x0006
+...
+```
 
 ## System Architecture
 
