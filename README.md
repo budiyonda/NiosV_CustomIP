@@ -95,19 +95,6 @@ NiosV_Hello/
 ## Build Instructions
 
 ### 1. Hardware Compilation (FPGA)
-
-```bash
-cd C:\Users\lab19\Documents\SoC\NiosV_Hello
-
-# Open Quartus project
-quartus Hello.qpf
-
-# In Quartus GUI:
-# 1. Tools → Platform Designer → Open NiosV.qsys (if modifications needed)
-# 2. Processing → Start Compilation
-# Wait for compilation to complete (~5-10 minutes)
-```
-
 **Expected Output:** `output_files/Hello.sof`
 
 ### 2. Software Compilation (Firmware)
