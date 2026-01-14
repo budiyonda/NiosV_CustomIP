@@ -42,14 +42,6 @@ This project demonstrates:
 - **Nios V Tools** : `niosv-shell` (for software build)
 - **Ashling riscfree** (RISC-V toolchain / for firmware upload)
 
-### Tool Installation
-1. Install Quartus Prime from [Intel FPGA Software Download Center](https://www.intel.com/content/www/us/en/software-kit/825280/intel-quartus-prime-standard-edition-design-software-version-25-1-for-windows.html)
-2. Install Nios V tools during Quartus installation
-3. Add Quartus tools to PATH:
-   ```powershell
-   $env:Path += ";C:\altera_standard\25.1std\quartus\bin64"
-   ```
-
 ## Project Structure
 
 ```
