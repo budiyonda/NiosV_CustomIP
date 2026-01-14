@@ -165,6 +165,8 @@ if (-not (Test-Path software)) { mkdir software }
 
 # Generate BSP (adjust the .sopcinfo filename if different)
 niosv-bsp -c -t=hal --sopcinfo=Hello.sopcinfo software/bsp/settings.bsp
+
+niosv-app -a=software/app -b=software/bsp -s=software/app/counter.c
 ```
 
 Notes:
