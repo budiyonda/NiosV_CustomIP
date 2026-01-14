@@ -42,28 +42,6 @@ This project demonstrates:
 - **Nios V Tools** : `niosv-shell` (for software build)
 - **Ashling riscfree** (RISC-V toolchain / for firmware upload)
 
-## Project Structure
-
-```
-NiosV_Hello/
-├── CustomIP/
-│   ├── seven_seg_controller.v       # Custom IP HDL source
-│   └── seven_seg_controller_hw.tcl  # Platform Designer component definition
-├── NiosV/
-│   ├── NiosV.qsys                   # Platform Designer system
-│   └── synthesis/
-│       └── submodules/
-│           └── seven_seg_controller.v  # Generated IP copy
-├── software/
-│   ├── app/
-│   │   ├── counter.c                # Main application
-│   │   └── CMakeLists.txt           # Build configuration
-│   └── bsp/                         # Board Support Package
-├── Hello.qpf                        # Quartus project file
-├── Hello.qsf                        # Quartus settings (pin assignments)
-└── README.md                        # This file
-```
-
 ## Custom IP Specification
 
 ### Seven-Segment Controller (`seven_seg_controller`)
@@ -131,6 +109,7 @@ Bit mapping: [DP][G][F][E][D][C][B][A]
 0x00030050 - 0x00030057 : JTAG UART
 0x00030058 - 0x0003005B : Seven-Segment Controller
 ```
+
 ## IMPLEMENTATION
 
 Follow these steps in order to build, program, and verify the project. Each step includes exact commands and a short explanation.
@@ -154,7 +133,7 @@ dir output_files\Hello.sof
 
 Expected output: `output_files/Hello.sof` (the .sof file used to program the FPGA).
 
-### Step 2 — Generate BSP (Board Support Package)
+### Step 2 — Generate BSP (Board Support Package & CMakeLists)
 
 Use the Nios V command shell so the tools and paths are set correctly.
 
@@ -165,14 +144,20 @@ if (-not (Test-Path software)) { mkdir software }
 
 # Generate BSP (adjust the .sopcinfo filename if different)
 niosv-bsp -c -t=hal --sopcinfo=Hello.sopcinfo software/bsp/settings.bsp
-
-niosv-app -a=software/app -b=software/bsp -s=software/app/counter.c
 ```
 
 Notes:
 - After this command completes, `software/bsp` should contain generated headers (including `system.h`) and BSP configuration files.
 
-### Step 3 — Build firmware (Ashling RiscFree or CMake)
+# Generate CMakeLists
+```powershell
+niosv-app -a=software/app -b=software/bsp -s=software/app/counter.c
+```
+
+Notes:
+- After this command completes, `software/app` should contain CMakeLists.txt
+
+### Step 3 — Build firmware (Ashling RiscFree)
 
 1. Launch Ashling RiscFree.
 2. Create a new project (File → New Project):
