@@ -92,18 +92,26 @@ NiosV_Hello/
 6. Pulses latch to update display
 7. Multiplexes through all 4 digits
 
-### Custom IP — Concepts (brief)
 
-- **Addressing / Register width:** Platform Designer assigns peripherals in word (32-bit) address units. The IP exposes a single logical register for display data (16 bits) at the assigned base address (e.g. `0x30058`). The memory map shows the byte range `0x30058 - 0x3005B` because that is the 4-byte word region allocated for the register.
+### Custom IP — Simple Explanation (for beginners)
 
-- **Data packing convention:** The firmware packs decimal digits into 4 nibbles in little-endian nibble order: `[d3][d2][d1][d0]` where `d0` is ones (rightmost). The IP extracts the nibble for the active digit using the `(digit_sel*4)+:4` slice.
+- What is this IP?
+  - This IP is a small FPGA module that receives numbers from the CPU and controls two 74HC595 shift registers to drive a 4-digit 7-segment display.
 
-- **Shift sequence:** The IP composes a 16-bit shift word consisting of a segment pattern byte and a digit-select byte. With `SEG_FIRST=1` the shift order is `[segment][digit]`. `LSB_FIRST=0` indicates MSB-first transmission into the first 74HC595 in the chain.
+- How does the firmware send numbers?
+  - The program packs four decimal digits into one 16-bit word: each digit occupies one nibble. Example: number `1234` is packed as `0x1234` (thousands in the high nibble, ones in the low nibble).
+  - The program writes that 16-bit word to the IP base address (e.g., `0x30058`).
 
-- **Segment polarity / encoding:** `seg_patterns` are encoded for a common-anode display (active-low segments). If your hardware uses common-cathode, invert the pattern bits (bitwise NOT) or change the pattern table accordingly.
+- How does the IP turn that into a visible display?
+  - The IP extracts the nibble for the currently active digit and looks up the corresponding 7-seg pattern from a table.
+  - The IP creates a 16-bit shift word and sends two bytes to the 74HC595 chain: a segment-pattern byte and a digit-select byte (with `SEG_FIRST` the pattern is sent first).
+  - Bits are sent MSB-first by default (`LSB_FIRST = 0`). If the display looks reversed, change `LSB_FIRST` or enable `BIT_REVERSE`.
 
-- **Extending the IP:** To add more features (brightness control, decimal point control, status flags), add additional word-aligned registers at `base + 4`, `base + 8`, etc., and expand the address decode in the Avalon slave logic.
+- Why does the memory map show 4 bytes (`0x30058 - 0x3005B`)?
+  - The CPU addresses memory by byte, but registers are allocated per 32-bit word. That byte range is the single 4-byte word allocated for the IP register, even though the IP uses only 16 bits inside that word.
 
+- Segment polarity (common-anode vs common-cathode)
+  - The `seg_patterns` table is written for common-anode displays (segments active = 0). If your hardware is common-cathode, invert the pattern bits (bitwise NOT) so segments light correctly.
 
 ## Build Instructions
 
