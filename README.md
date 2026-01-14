@@ -15,10 +15,7 @@ This project demonstrates:
 
 ### Primary Components
 - **DE10-Nano Development Board** (Cyclone V 5CSEBA6U23I7)
-- **Arduino Multifunction Shield** with:
-  - 4-digit 7-segment display (common anode)
-  - Two 74HC595 shift registers (daisy-chained)
-  - Push buttons
+- **Arduino Multifunction Shield**
 
 ### Connections
 
