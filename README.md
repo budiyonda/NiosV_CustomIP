@@ -39,10 +39,8 @@ This project demonstrates:
 ### Development Tools
 - **Quartus Prime** 25.1 Standard Edition or later
 - **Platform Designer** (included with Quartus)
-- **Nios V Tools**:
-  - `niosv-download` (for firmware upload)
-  - `niosv-shell` (for software build)
-- `ashling riscfree` (RISC-V toolchain / debugger used for the target)
+- **Nios V Tools**
+- **Ashling riscfree** (RISC-V toolchain / debugger used for the target)
 
 ### Tool Installation
 1. Install Quartus Prime from [Intel FPGA Software Download Center](https://www.intel.com/content/www/us/en/software-kit/825280/intel-quartus-prime-standard-edition-design-software-version-25-1-for-windows.html)
