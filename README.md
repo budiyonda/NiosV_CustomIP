@@ -93,7 +93,7 @@ NiosV_Hello/
 7. Multiplexes through all 4 digits
 
 
-### Custom IP — Simple Explanation (for beginners)
+### Custom IP — Simple Explanation
 
 - What is this IP?
   - This IP is a small FPGA module that receives numbers from the CPU and controls two 74HC595 shift registers to drive a 4-digit 7-segment display.
