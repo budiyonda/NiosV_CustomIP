@@ -83,12 +83,6 @@ NiosV_Hello/
   - `sr_clk`: Shift clock output
   - `sr_latch`: Output latch control
 
-**Parameters:**
-- `LSB_FIRST = 0`: MSB-first shifting
-- `SEG_FIRST = 1`: Send segment byte before digit byte
-- `BIT_REVERSE = 0`: No bit reversal
-- `LATCH_DELAY = 4`: Latch pulse width (clock cycles)
-
 **Operation:**
 1. Receives 16-bit value from CPU
 2. Extracts nibble for current digit (0-9)
