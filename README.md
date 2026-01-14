@@ -123,25 +123,14 @@ NiosV_Hello/
 
 ## Step 4 — Program FPGA and upload firmware
 
-  Program the FPGA using Quartus Programmer, then upload firmware over JTAG.
-
-  ```powershell
-  # Program FPGA
-  quartus_pgm -c "USB-Blaster" -m JTAG -o "p;output_files/Hello.sof@1"
-
-  # Upload firmware
-  cd software/app/build
-  niosv-download -g app.elf
-  ```
-
-  Alternatively, use Ashling RiscFree to run a hardware debug session:
-
+  Program the FPGA using Ashling RiscFree to run a hardware debug session:
+  
   1. Connect the USB-JTAG cable to your board.
   2. In Ashling, Run as → Ashling RISC-V Hardware Debugging.
   3. In the debug configuration select the correct target board and choose core `Nios V`.
   4. Apply and launch the debugger.
 
-  ### Step 5 — Hardware verification checklist
+## Step 5 — Hardware verification checklist
 
   1. Open a JTAG UART terminal (or the Ashling console) and verify the program prints on startup:
 
@@ -160,14 +149,11 @@ NiosV_Hello/
   - If digits are in wrong positions, check `digit_select` mapping vs. shield wiring.
   - If segments are inverted, invert `seg_patterns` (common-cathode vs common-anode).
 
-  Use the above procedure to implement and verify the design.
-
-- **Step 5 — Hardware verification checklist**
-**Expected Console Output:**
-```
-Counter app start (0-9999)
-7-seg display = 0, write to 0x30058 = 0x0000
-```
+  **Expected Console Output:**
+  ```
+  Counter app start (0-9999)
+  7-seg display = 0, write to 0x30058 = 0x0000
+  ```
 
 ### Counter Operation
 
