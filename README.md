@@ -71,80 +71,12 @@ NiosV_Hello/
 **Interface:**
 - **Avalon-MM Slave**:
   - Base address: `0x30058`
-  ## IMPLEMENTATION
 
-  Follow these steps to build the FPGA project, generate a BSP, build firmware, program the board, and verify the system.
-
-  ### Step 1 — Hardware build (Quartus)
-
-  1. Open the Quartus project (`Hello.qpf`) in the Quartus GUI, or from the command line:
-
-  ```powershell
-  cd D:\Quartus251\projects\[your project]
-  quartus Hello.qpf
-  quartus_sh --flow compile Hello
-  ```
-
-  2. Confirm the compilation produced `output_files/Hello.sof`.
-
-  ### Step 2 — Generate BSP (Nios V command shell)
-
-  Open the Nios V command shell (ensures proper tool environment) and run:
-
-  ```powershell
-  cd D:\Quartus251\projects\[your project]
-  # create software directory if missing
-  mkdir software
-
-  # generate BSP (replace [your].sopcinfo with the exported file)
-  niosv-bsp -c -t=hal --sopcinfo=Hello.sopcinfo software/bsp/settings.bsp
-
-  # create the application (legacy tool) or use your CMake flow
-  niosv-app -a=software/app -b=software/bsp -s=software/app/counter.c
-  ```
-
-  Note: if you use the CMake flow, generate the BSP above and then build the app using the CMake instructions in this README.
-
-  ### Step 3 — Build firmware (Ashling RiscFree or CMake)
-
-  Option A — Using Ashling RiscFree (IDE):
-
-  1. Launch Ashling RiscFree.
-  2. Create a new project (File → New Project):
-    - Project type: Empty project
-    - Toolchain: CMake-driven (or select the appropriate Ashling toolchain)
-    - Location: `C:\Users\lab19\Documents\MBSY\SoC\SoC\NiosV_Hello\software\app`
-    - Project name: `app`
-  3. Import source files (if needed), then build the project (right-click project → Build Project).
-
-  Option B — Command-line CMake (preferred for CI/reproducibility):
-
-  ```powershell
-  cd software/app
-  if (-not (Test-Path build)) { mkdir build }
-  cd build
-  cmake ..
-  cmake --build . --config Release
-  ```
-
-  Verify the build produced `app.elf` (or build artifacts in the chosen build directory).
-
-  ### Step 4 — Program FPGA and upload firmware
-
-  1. Program the FPGA with the compiled .sof file (Quartus Programmer):
-
-  ```powershell
-  quartus_pgm -c "USB-Blaster" -m JTAG -o "p;output_files/Hello.sof@1"
-  ```
-
-  2. Upload and run the firmware:
-
-  ```powershell
-  ## IMPLEMENTATION
+## IMPLEMENTATION
 
   Follow these steps in order to build, program, and verify the project. Each step includes exact commands and a short explanation.
 
-  ### Step 1 — Hardware build (Quartus)
+## Step 1 — Hardware build (Quartus)
 
   1. Open your Quartus project (or run from the command line):
 
@@ -163,7 +95,7 @@ NiosV_Hello/
 
   Expected output: `output_files/Hello.sof` (the .sof file used to program the FPGA).
 
-  ### Step 2 — Generate BSP (Board Support Package)
+## Step 2 — Generate BSP (Board Support Package)
 
   Use the Nios V command shell so the tools and paths are set correctly.
 
@@ -179,9 +111,7 @@ NiosV_Hello/
   Notes:
   - After this command completes, `software/bsp` should contain generated headers (including `system.h`) and BSP configuration files.
 
-  ### Step 3 — Build firmware (app)
-
-  Option A — Ashling RiscFree (IDE)
+## Step 3 — Build firmware (Ashling RiscFree or CMake)
 
   1. Launch Ashling RiscFree.
   2. Create a new project (File → New Project):
@@ -203,7 +133,7 @@ NiosV_Hello/
 
   Verify: `app.elf` is produced in the build directory.
 
-  ### Step 4 — Program FPGA and upload firmware
+## Step 4 — Program FPGA and upload firmware
 
   Program the FPGA using Quartus Programmer, then upload firmware over JTAG.
 
